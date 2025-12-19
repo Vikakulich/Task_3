@@ -1,51 +1,32 @@
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
-import io.github.bonigarcia.wdm.WebDriverManager;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
 import ru.stellarburgers.pageObject.RegisterPage;
+import ru.stellarburgers.pageObject.MainPage;
 import ru.stellarburgers.api.ApiClient;
 
 import static org.junit.Assert.*;
 
 @Feature("Аутентификация")
 @Story("Регистрация")
-public class RegistrationTest {
+public class RegistrationTest extends BaseTest {
     
-    private WebDriver driver;
     private RegisterPage registerPage;
+    private MainPage mainPage;
     private ApiClient apiClient;
 
     @Before
     public void setUp() {
-        // Браузер: chrome (по умолчанию) или yandex
-        String browserName = System.getProperty("browser", "chrome");
-        
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        
-        if (browserName.equalsIgnoreCase("yandex")) {
-            // Путь к Яндекс.Браузеру на macOS
-            options.setBinary("/Applications/Yandex.app/Contents/MacOS/Yandex");
-        }
-        
-        driver = new ChromeDriver(options);
-        driver.manage().window().maximize();
+        super.setUp();
         driver.navigate().to("https://stellarburgers.education-services.ru/register");
         registerPage = new RegisterPage(driver);
+        mainPage = new MainPage(driver);
         apiClient = new ApiClient();
-    }
-    
-    @After
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
     }
     
     @Test
@@ -55,11 +36,20 @@ public class RegistrationTest {
         String name = "Test User";
         String password = "password123";
         
+        registerPage.register(name, email, password);
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"));
+        assertTrue("Должна быть видна кнопка Оформить заказ", 
+                mainPage.createOrderButtonIsDisplayed());
+        
+        // Удаляем пользователя через API после теста
         try {
-            registerPage.register(name, email, password);
-            assertTrue("Регистрация выполнена", true);
+            String token = apiClient.loginUser(email, password);
+            if (token != null && !token.isEmpty()) {
+                apiClient.deleteUser(token);
+            }
         } catch (Exception e) {
-            fail("Ошибка при регистрации: " + e.getMessage());
+            System.out.println("Не удалось удалить пользователя: " + e.getMessage());
         }
     }
     
@@ -70,15 +60,9 @@ public class RegistrationTest {
         String name = "Test User";
         String shortPassword = "pass";  // Менее 6 символов
         
-        try {
-            registerPage.register(name, email, shortPassword);
-            // После попытки регистрации с коротким паролем проверяем что мы все еще на странице регистрации
-            assertTrue("Остаемся на странице регистрации", 
-                driver.getCurrentUrl().contains("/register"));
-        } catch (Exception e) {
-            // Ошибка при заполнении формы тоже допустима
-            assertTrue("Короткий пароль обработан", true);
-        }
+        registerPage.register(name, email, shortPassword);
+        assertTrue("Должно отображаться сообщение об ошибке пароля", 
+                registerPage.passwordErrorMessageIsDisplayed());
     }
     
     @Test

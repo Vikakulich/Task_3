@@ -1,13 +1,12 @@
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
 import ru.stellarburgers.pageObject.MainPage;
 import ru.stellarburgers.pageObject.ProfilePage;
 import ru.stellarburgers.pageObject.LoginPage;
@@ -17,9 +16,8 @@ import static org.junit.Assert.*;
 
 @Feature("Личный кабинет")
 @Story("Управление аккаунтом")
-public class AccountTest {
+public class AccountTest extends BaseTest {
     
-    private WebDriver driver;
     private MainPage mainPage;
     private ProfilePage profilePage;
     private LoginPage loginPage;
@@ -31,22 +29,7 @@ public class AccountTest {
     
     @Before
     public void setUp() {
-        // Браузер: chrome (по умолчанию) или yandex
-        String browserName = System.getProperty("browser", "chrome");
-        
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--window-size=1920,1080");
-        
-        if (browserName.equalsIgnoreCase("yandex")) {
-            // Путь к Яндекс.Браузеру на macOS
-            options.setBinary("/Applications/Yandex.app/Contents/MacOS/Yandex");
-        }
-        
-        driver = new ChromeDriver(options);
-        
-        driver.manage().window().maximize();
-        driver.manage().deleteAllCookies();
+        super.setUp();
         driver.navigate().to("https://stellarburgers.education-services.ru/");
         
         mainPage = new MainPage(driver);
@@ -78,9 +61,7 @@ public class AccountTest {
             System.out.println("Не удалось удалить пользователя: " + e.getMessage());
         }
         
-        if (driver != null) {
-            driver.quit();
-        }
+        super.tearDown();
     }
     
     @Test
@@ -91,15 +72,15 @@ public class AccountTest {
         loginPage.login(testEmail, testPassword);
         
         // Ждем перехода на главную после логина
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
         
         // Переходим в личный кабинет
         mainPage.profileButtonClick();
         
         // После клика должны быть на странице личного кабинета
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/account"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("/account"));
         assertTrue("URL должен содержать /account", driver.getCurrentUrl().contains("/account"));
     }
     
@@ -109,22 +90,22 @@ public class AccountTest {
         // Логинимся и переходим в личный кабинет
         mainPage.loginButtonClick();
         loginPage.login(testEmail, testPassword);
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
         mainPage.profileButtonClick();
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/account"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("/account"));
         
         // Ждем загрузки страницы личного кабинета
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlMatches(".*/account.*"));
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(ExpectedConditions.urlMatches(".*/account.*"));
         
         // Кликаем на Конструктор
         profilePage.clickConstructorButton();
         
         // Должны вернуться на главную страницу
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"));
         assertTrue("Должны быть на главной странице", 
             driver.getCurrentUrl().equals("https://stellarburgers.education-services.ru/"));
     }
@@ -135,26 +116,26 @@ public class AccountTest {
         // Логинимся и переходим в личный кабинет
         mainPage.loginButtonClick();
         loginPage.login(testEmail, testPassword);
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
         mainPage.profileButtonClick();
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/account"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("/account"));
         
         // Ждем загрузки страницы личного кабинета и навигации
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlMatches(".*/account.*"));
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(ExpectedConditions.urlMatches(".*/account.*"));
         // Ждем появления навигации
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated(
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.presenceOfElementLocated(
                     org.openqa.selenium.By.xpath("//nav")));
         
         // Кликаем на логотип
         profilePage.clickLogo();
         
         // Должны вернуться на главную страницу
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"));
         assertTrue("Должны быть на главной странице", 
             driver.getCurrentUrl().equals("https://stellarburgers.education-services.ru/"));
     }
@@ -165,26 +146,26 @@ public class AccountTest {
         // Логинимся и переходим в личный кабинет
         mainPage.loginButtonClick();
         loginPage.login(testEmail, testPassword);
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("stellarburgers.education-services.ru/"));
         mainPage.profileButtonClick();
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/account"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("/account"));
         
         // Ждем загрузки страницы личного кабинета и навигации
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlMatches(".*/account.*"));
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(ExpectedConditions.urlMatches(".*/account.*"));
         // Ждем появления навигации
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated(
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.presenceOfElementLocated(
                     org.openqa.selenium.By.xpath("//nav")));
         
         // Выходим из аккаунта
         profilePage.logout();
         
         // После выхода должны быть на странице входа
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
-                .until(org.openqa.selenium.support.ui.ExpectedConditions.urlContains("/login"));
+        new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.urlContains("/login"));
         assertTrue("Должны быть на странице входа", 
             driver.getCurrentUrl().contains("/login"));
     }
