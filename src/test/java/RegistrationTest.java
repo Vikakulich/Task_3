@@ -37,8 +37,23 @@ public class RegistrationTest extends BaseTest {
         String password = "password123";
         
         registerPage.register(name, email, password);
+        
+        // После регистрации пользователь может быть перенаправлен на страницу входа
+        // Проверяем URL и при необходимости выполняем логин
         new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"));
+                .until(ExpectedConditions.or(
+                    ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"),
+                    ExpectedConditions.urlContains("/login")
+                ));
+        
+        // Если остались на странице входа, выполняем логин
+        if (driver.getCurrentUrl().contains("/login")) {
+            ru.stellarburgers.pageObject.LoginPage loginPage = new ru.stellarburgers.pageObject.LoginPage(driver);
+            loginPage.login(email, password);
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                    .until(ExpectedConditions.urlToBe("https://stellarburgers.education-services.ru/"));
+        }
+        
         assertTrue("Должна быть видна кнопка Оформить заказ", 
                 mainPage.createOrderButtonIsDisplayed());
         
